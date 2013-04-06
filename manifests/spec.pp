@@ -9,14 +9,12 @@
 # This class is not intended to be used directly.
 # Use it as reference
 #
-class stdmod::spec inherits stdmod {
+class stdmod::spec {
 
-  # This just a test to override the arguments of an existing resource
-  # Note that you can achieve this same result with just:
-  # class { "stdmod": template => "stdmod/spec.erb" }
-
-  File['stdmod.conf'] {
-    content => template('stdmod/spec.erb'),
+  file { 'my_config':
+    ensure  => present,
+    path    => "${stdmod::config_dir}/my_config",
+    content => 'my_content',
   }
 
 }
