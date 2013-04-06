@@ -135,3 +135,5 @@ Released under the terms of Apache 2 License.
           my_class => 'example42::my_stdmod',
         }
 
+## TESTING
+[![Build Status](https://travis-ci.org/example42/puppet-stdmod.png?branch=master)](https://travis-ci.org/example42/puppet-stdmod)
