@@ -3,6 +3,6 @@
 # Auditing enabled
 #
 class { 'stdmod':
-  template => 'stdlib/tests/test.conf',
+  template => 'stdmod/tests/test.conf',
   audit    => 'all',
 }

@@ -1,5 +1,5 @@
 # Class removal
 #
-class { 'stdlib':
+class { 'stdmod':
   absent => true,
 }

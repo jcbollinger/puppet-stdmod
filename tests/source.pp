@@ -3,6 +3,6 @@
 # Auditing enabled
 #
 class { 'stdmod':
-  source => 'puppet:///modules/stdlib/tests/test.conf',
+  source => 'puppet:///modules/stdmod/tests/test.conf',
   audit  => 'all',
 }
