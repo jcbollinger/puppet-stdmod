@@ -41,24 +41,24 @@
 #   If defined, stdmod main config file will have the param: source => $source
 #   Example: source => 'puppet:///modules/site/stdmod/stdmod.conf',
 #
-# [*source_dir*]
+# [*dir_source*]
 #   String or Array. Default: undef
 #   If set, the main configuration dir is managed and its contents retrieved
 #   from the specified source.
-#   Example: source => 'puppet:///modules/site/stdmod/conf.d/',
+#   Example: dir_source => 'puppet:///modules/site/stdmod/conf.d/',
 #
-# [*source_dir_recurse*]
-#   String. Default: true. Needs 'source_dir'.
+# [*dir_recurse*]
+#   String. Default: true. Needs 'dir_source'.
 #   Sets recurse parameter on the main configuration directory, if managed.
 #   Possible values:
 #   * 'true|int' - Regular recursion on both remote and local dir structure
 #   * 'remote' - Descends recursively into the remote dir but not the local dir
 #   * 'false - No recursion
 #
-# [*source_dir_purge*]
+# [*dir_purge*]
 #   Boolean. Default: false
 #   If set to true the existing configuration directory is
-#   mirrored with the content retrieved from source_dir
+#   mirrored with the content retrieved from dir_source
 #
 # [*template*]
 #   String. Default: undef. Alternative to 'source'.
@@ -100,9 +100,9 @@ class stdmod (
   $autorestart         = true,
 
   $source              = undef,
-  $source_dir          = undef,
-  $source_dir_recurse  = true,
-  $source_dir_purge    = false,
+  $dir_source          = undef,
+  $dir_recurse         = true,
+  $dir_purge           = false,
 
   $template            = undef,
   $options             = undef,
@@ -119,8 +119,8 @@ class stdmod (
   validate_string($version)
   validate_re($status, ['enabled','disabled','running','stopped','activated','deactivated','unmanaged'], 'Valid values are: enabled, disabled, running, stopped, activated, deactivated and unmanaged')
   validate_bool($autorestart)
-  validate_bool($source_dir_recurse)
-  validate_bool($source_dir_purge)
+  validate_bool($dir_recurse)
+  validate_bool($dir_purge)
   if $options { validate_hash($options) }
   if $noops { validate_bool($noops) }
 
@@ -129,11 +129,11 @@ class stdmod (
 
   $package=$stdmod::params::package
   $service=$stdmod::params::service
-  $config_file=$stdmod::params::config_file
-  $config_dir=$stdmod::params::config_dir
-  $config_file_mode=$stdmod::params::config_file_mode
-  $config_file_owner=$stdmod::params::config_file_owner
-  $config_file_group=$stdmod::params::config_file_group
+  $file_path=$stdmod::params::file_path
+  $dir_path=$stdmod::params::dir_path
+  $file_mode=$stdmod::params::file_mode
+  $file_owner=$stdmod::params::file_owner
+  $file_group=$stdmod::params::file_group
 
   ### Internal variables (that map class parameters)
   if $stdmod::ensure == 'present' {
@@ -212,9 +212,9 @@ class stdmod (
 
   file { 'stdmod.conf':
     ensure  => $stdmod::file_ensure,
-    path    => $stdmod::config_file,
-    mode    => $stdmod::config_filemode,
-    owner   => $stdmod::config_fileowner,
+    path    => $stdmod::file_path,
+    mode    => $stdmod::file_mode,
+    owner   => $stdmod::file_owner,
     group   => $stdmod::file_group,
     require => Package[$stdmod::package],
     notify  => $stdmod::file_notify,
@@ -225,17 +225,17 @@ class stdmod (
     noop    => $stdmod::noops,
   }
 
-  # Configuration Directory, if source_dir defined
-  if $stdmod::source_dir {
+  # Configuration Directory, if dir_source defined
+  if $stdmod::dir_source {
     file { 'stdmod.dir':
       ensure  => $stdmod::dir_ensure,
-      path    => $stdmod::config_dir,
+      path    => $stdmod::dir_path,
       require => Package[$stdmod::package],
       notify  => $stdmod::file_notify,
-      source  => $stdmod::source_dir,
-      recurse => $stdmod::source_dir_recurse,
-      purge   => $stdmod::source_dir_purge,
-      force   => $stdmod::source_dir_purge,
+      source  => $stdmod::dir_source,
+      recurse => $stdmod::dir_recurse,
+      purge   => $stdmod::dir_purge,
+      force   => $stdmod::dir_purge,
       replace => $stdmod::file_replace,
       audit   => $stdmod::file_audit,
       noop    => $stdmod::noops,

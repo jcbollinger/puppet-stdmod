@@ -93,22 +93,22 @@ Released under the terms of Apache 2 License.
 * Use custom source directory for the whole configuration dir.
 
         class { 'stdmod':
-          source_dir       => 'puppet:///modules/example42/stdmod/conf/',
+          dir_source       => 'puppet:///modules/example42/stdmod/conf/',
         }
 
-* Use custom source directory for the whole configuration dir purging all the local files that are not on the source_dir.
+* Use custom source directory for the whole configuration dir purging all the local files that are not on the dir_source.
   Note: This option can be used to be sure that the content of a directory is exactly the same you expect, but it is desctructive and may remove files.
 
         class { 'stdmod':
-          source_dir       => 'puppet:///modules/example42/stdmod/conf/',
-          source_dir_purge => true, # Default: false.
+          dir_source => 'puppet:///modules/example42/stdmod/conf/',
+          dir_purge  => true, # Default: false.
         }
 
 * Use custom source directory for the whole configuration dir and define recursing policy.
 
         class { 'stdmod':
-          source_dir           => 'puppet:///modules/example42/stdmod/conf/',
-          source_dir_recursion => false, # Default: true.
+          dir_source    => 'puppet:///modules/example42/stdmod/conf/',
+          dir_recursion => false, # Default: true.
         }
 
 * Use custom template for main config file. Note that template and source arguments are alternative. 

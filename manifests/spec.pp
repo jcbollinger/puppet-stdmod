@@ -13,7 +13,7 @@ class stdmod::spec {
 
   file { 'my_config':
     ensure  => present,
-    path    => "${stdmod::config_dir}/my_config",
+    path    => "${stdmod::dir_path}/my_config",
     content => 'my_content',
   }
 

@@ -67,7 +67,7 @@ describe 'stdmod' do
   end
 
   describe 'Test customizations - source_dir' do
-    let(:params) { {:source_dir => "puppet:///modules/stdmod/tests/" , :source_dir_purge => true } }
+    let(:params) { {:dir_source => "puppet:///modules/stdmod/tests/" , :dir_purge => true } }
     it { should contain_file('stdmod.dir').with_source('puppet:///modules/stdmod/tests/') }
     it { should contain_file('stdmod.dir').with_purge('true') }
     it { should contain_file('stdmod.dir').with_force('true') }

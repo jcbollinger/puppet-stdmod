@@ -24,23 +24,23 @@ class stdmod::params {
     default => 'stdmod',
   }
 
-  $config_dir = $::operatingsystem ? {
+  $dir_path = $::operatingsystem ? {
     default => '/etc/stdmod',
   }
 
-  $config_file = $::operatingsystem ? {
+  $file_path = $::operatingsystem ? {
     default => '/etc/stdmod/stdmod.conf',
   }
 
-  $config_file_mode = $::operatingsystem ? {
+  $file_mode = $::operatingsystem ? {
     default => '0644',
   }
 
-  $config_file_owner = $::operatingsystem ? {
+  $file_owner = $::operatingsystem ? {
     default => 'root',
   }
 
-  $config_file_group = $::operatingsystem ? {
+  $file_group = $::operatingsystem ? {
     default => 'root',
   }
 
