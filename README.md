@@ -127,6 +127,12 @@ Released under the terms of Apache 2 License.
           },
         }
 
+* Specify the name of a custom class to include that provides the dependencies required by the module for full functionality. Use this if you want to use alternative modules to manage dependencies.
+
+        class { 'stdmod':
+          dependency_class => 'example42::dependency_stdmod',
+        }
+
 * Automatically include a custom class with extra resources related to stdmod.
   Here is loaded $modulepath/example42/manifests/my_stdmod.pp.
   Note: Use a subclass name different than stdmod to avoid order loading issues.

@@ -71,6 +71,15 @@
 #   An hash of custom options to be used in templates to manage any key pairs of
 #   arbitrary settings.
 #
+# [*dependency_class*]
+#   String. Default: stdmod::dependency
+#   Name of a class that contains resources needed by this module but provided
+#   by external modules. You may leave the default value to keep the
+#   default dependencies as declared in stdmod/manifests/dependency.pp
+#   or define a custom class name where the same resources are provided
+#   with custom ways or via other modules.
+#   Set to undef to not include any dependency class.
+#
 # [*my_class*]
 #   String. Default undef.
 #   Name of a custom class to autoload to manage module's customizations
@@ -107,6 +116,7 @@ class stdmod (
   $template            = undef,
   $options             = undef,
 
+  $dependency_class    = 'stdmod::dependency',
   $my_class            = undef,
 
   $audits              = undef,
@@ -243,7 +253,11 @@ class stdmod (
   }
 
 
-  ### Optional include of custom class
+  ### Extra classes
+  if $stdmod::dependency_class {
+    include $stdmod::dpendency_class
+  }
+
   if $stdmod::my_class {
     include $stdmod::my_class
   }
