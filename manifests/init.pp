@@ -255,7 +255,7 @@ class stdmod (
 
   ### Extra classes
   if $stdmod::dependency_class {
-    include $stdmod::dpendency_class
+    include $stdmod::dependency_class
   }
 
   if $stdmod::my_class {
