@@ -29,6 +29,8 @@ define stdmod::configfile (
   $options  = '' ,
   $ensure  = present ) {
 
+  # Note: it is safe to 'include' class stdmod here because (the accompanying
+  # version of) that class is not parameterized.
   include stdmod
 
   file { "stdmod_configfile_${name}":

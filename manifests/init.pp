@@ -4,7 +4,7 @@
 # This class installs and manages stdmod
 #
 #
-# == Parameters
+# == Data
 #
 # [*ensure*]
 #   String. Default: present
@@ -31,21 +31,23 @@
 #   * 'unmanaged'   : ensure => undef   , enable => undef
 #
 # [*autorestart*]
-#   Boolean. Default: true
-#   Define if changes to configurations automatically trigger a restart
-#   of the relevant service(s)
+#   String. Default: true
+#   Defines whether changes to configurations automatically trigger a restart
+#   of the relevant service(s).  Possible values:
+#   * 'true'
+#   * 'false'
 #
 # [*source*]
 #   String or Array. Default: undef. Alternative to 'template'.
 #   Sets the content of source parameter for main configuration file.
 #   If defined, stdmod main config file will have the param: source => $source
-#   Example: source => 'puppet:///modules/site/stdmod/stdmod.conf',
+#   Example: 'puppet:///modules/site/stdmod/stdmod.conf'
 #
 # [*dir_source*]
 #   String or Array. Default: undef
 #   If set, the main configuration dir is managed and its contents retrieved
 #   from the specified source.
-#   Example: dir_source => 'puppet:///modules/site/stdmod/conf.d/',
+#   Example: 'puppet:///modules/site/stdmod/conf.d/'
 #
 # [*dir_recurse*]
 #   String. Default: true. Needs 'dir_source'.
@@ -56,9 +58,11 @@
 #   * 'false - No recursion
 #
 # [*dir_purge*]
-#   Boolean. Default: false
+#   String. Default: false
 #   If set to true the existing configuration directory is
-#   mirrored with the content retrieved from dir_source
+#   mirrored with the content retrieved from dir_source.  Possible values:
+#   * 'true'
+#   * 'false'
 #
 # [*template*]
 #   String. Default: undef. Alternative to 'source'.
@@ -77,14 +81,17 @@
 #   by external modules. You may leave the default value to keep the
 #   default dependencies as declared in stdmod/manifests/dependency.pp
 #   or define a custom class name where the same resources are provided
-#   with custom ways or via other modules.
-#   Set to undef to not include any dependency class.
+#   with custom ways or via other modules.  This class will use an 'include'
+#   statement to declare the named class, but will NOT anchor it into this
+#   class.
+#   Set to an empty string to not include any dependency class.
 #
 # [*my_class*]
-#   String. Default undef.
+#   String. Default ''.
 #   Name of a custom class to autoload to manage module's customizations
-#   If defined, stdmod class will automatically "include $my_class"
-#   Example: my_class => 'site::my_stdmod',
+#   If a class is named, stdmod class will automatically use an 'include'
+#   statement to declare it, but will NOT anchor it.
+#   Example: 'site::my_stdmod'
 #
 # [*audits*]
 #   String or array. Default: undef.
@@ -96,43 +103,45 @@
 #   * 'all' - Audit all the attributes.
 #
 # [*noops*]
-#   Boolean. Default: false.
+#   String. Default: false.
 #   Set noop metaparameter to true for all the resources managed by the module.
-#   If true no real change is done is done by the module on the system.
+#   If true no real change is done is done by the module on the system. Possible
+#   values:
+#   * 'true'
+#   * 'false'
 #
-class stdmod (
+class stdmod {
 
-  $ensure              = 'present',
-  $version             = undef,
+  ### (Possibly) external data
+  $ensure              = hiera('stdmod::ensure', 'present')
+  $version             = hiera('stdmod::version', '')
 
-  $status              = 'enabled',
-  $autorestart         = true,
+  $status              = hiera('stdmod::status', 'enabled')
+  $autorestart         = hiera('stdmod::autorestart', 'true')
 
-  $source              = undef,
-  $dir_source          = undef,
-  $dir_recurse         = true,
-  $dir_purge           = false,
+  $source              = hiera('stdmod::source', '')
+  $dir_source          = hiera('sdtmod::dir_source', '')
+  $dir_recurse         = hiera('stdmod::dir_recurse', 'true')
+  $dir_purge           = hiera('stdmod::dir_purge', 'false')
 
-  $template            = undef,
-  $options             = undef,
+  $template            = hiera('stdmod::template', '')
+  $options             = hiera('stdmod::options', { })
 
-  $dependency_class    = 'stdmod::dependency',
-  $my_class            = undef,
+  $dependency_class    = hiera('stdmod::dependency_class', 'stdmod::dependency')
+  $my_class            = hiera('stdmod::my_class', '')
 
-  $audits              = undef,
-  $noops               = undef
+  $audits              = hiera('stdmod::audits', [ ])
+  $noops               = hiera('stdmod::noops', 'false')
 
-  ) {
-
-  ### Input parameters validation
+  ### Data validation
   validate_re($ensure, ['present','absent'], 'Valid values are: present, absent')
   validate_string($version)
   validate_re($status, ['enabled','disabled','running','stopped','activated','deactivated','unmanaged'], 'Valid values are: enabled, disabled, running, stopped, activated, deactivated and unmanaged')
-  validate_bool($autorestart)
-  validate_bool($dir_recurse)
-  validate_bool($dir_purge)
-  if $options { validate_hash($options) }
-  if $noops { validate_bool($noops) }
+  validate_re($autorestart, ['true','false'], 'Valid values are: true, false')
+  validate_re($dir_recurse, ['true','false'], 'Valid values are: true, false')
+  validate_re($dir_purge, ['true','false'], 'Valid values are: true, false')
+  validate_hash($options)
+  validate_re($noops, ['true','false'], 'Valid values are: true, false')
 
   ### Variables defined in stdmod::params
   include stdmod::params
@@ -145,7 +154,7 @@ class stdmod (
   $file_owner=$stdmod::params::file_owner
   $file_group=$stdmod::params::file_group
 
-  ### Internal variables (that map class parameters)
+  ### Internal variables (that map external data)
   if $stdmod::ensure == 'present' {
 
     $package_ensure = $stdmod::version ? {
@@ -181,24 +190,32 @@ class stdmod (
     $package_ensure = 'absent'
     $service_enable = undef
     $service_ensure = stopped
+
     $dir_ensure = absent
     $file_ensure = absent
 
   }
 
   $file_notify = $stdmod::autorestart ? {
-    true    => Service['stdmod'],
-    false   => undef,
+    'true'  => Service['stdmod'],
+    'false' => undef,
   }
 
-  $file_audit = $stdmod::audits
+  if count(any2array($stdmod::audits)) == 0 {
+    $file_audit = undef
+  } else {
+    $file_audit = $stdmod::audits
+  }
 
-  $file_replace = $stdmod::audits ? {
+  $file_replace = $stdmod::file_audit ? {
     ''      => true,
     default => false,
   }
 
-  $file_source = $stdmod::source
+  $file_source = $stdmod::source ? {
+    ''      => undef,
+    default => $stdmod::source
+  }
 
   $file_content = $stdmod::template ? {
     ''        => undef,
@@ -216,7 +233,14 @@ class stdmod (
   service { $stdmod::service:
     ensure     => $stdmod::service_ensure,
     enable     => $stdmod::service_enable,
-    require    => Package[$stdmod::package],
+    before     => $stdmod::package_ensure ? {
+                    'absent' => Package[$stdmod::package]
+                    default  => undef,
+                  },
+    require    => $stdmod::package_ensure ? {
+                    'absent' => undef,
+                    default  => [Package[$stdmod::package], File['stdmod.conf']]
+                  },
     noop       => $stdmod::noops,
   }
 
@@ -236,7 +260,7 @@ class stdmod (
   }
 
   # Configuration Directory, if dir_source defined
-  if $stdmod::dir_source {
+  if $stdmod::dir_source != '' {
     file { 'stdmod.dir':
       ensure  => $stdmod::dir_ensure,
       path    => $stdmod::dir_path,
@@ -254,11 +278,11 @@ class stdmod (
 
 
   ### Extra classes
-  if $stdmod::dependency_class {
+  if $stdmod::dependency_class != '' {
     include $stdmod::dependency_class
   }
 
-  if $stdmod::my_class {
+  if $stdmod::my_class != '' {
     include $stdmod::my_class
   }
 

@@ -10,136 +10,107 @@ Released under the terms of Apache 2 License.
 
 ## USAGE - Basic management
 
-* Install stdmod with default settings (package installed, service started, default configuration files)
+* To declare stdmod managed on the target node, simply declare class 'stdmod':
 
-        class { 'stdmod': }
+        include 'stdmod'
 
-* Remove stdmod package and purge all the managed files
+Absent any customization, that will ensure the package installed, configuration
+files set up with default settings (as defined by this module), and the
+service started.
 
-        class { 'stdmod':
-          ensure => absent,
-        }
+Customization options for stdlib are provided as external data, accessed by the
+module via Hiera.  Important data and their uses include
 
-* Install a specific version of stdmod package
+* To ensure stdmod and all it managed files absent, and the service stopped:
 
-        class { 'stdmod':
-          version => '1.0.1',
-        }
+        stdmod::ensure: "absent"
 
-* Install the latest version of stdmod package
+* To ensure a specific version of the stdmod package (e.g. v1.0.1) is used:
 
-        class { 'stdmod':
-          version => 'latest',
-        }
+        stdmod::version: "1.0.1"
 
-* Enable stdmod service (both at boot and runtime). This is default.
+* To ensure that the most recent available version of the stdmod package is used:
 
-        class { 'stdmod':
-          status => 'enabled',
-        }
+        stdmod::version: "latest"
 
-* Disable stdmod service (both at boot and runtime)
+* To ensure the stdmod service is running, and is configured to start at system boot (this is default):
 
-        class { 'stdmod':
-          status => 'disabled',
-        }
+        stdmod::status: "enabled"
 
-* Ensure service is running but don't manage if is disabled at boot
+* To ensure the stdmod service is not running, and is not configured to start at system boot:
 
-        class { 'stdmod':
-          status => 'running',
-        }
+        stdmod::status: "disabled"
 
-* Ensure service is disabled at boot and do not check it is running
+* To ensure the stdmod service is running without managing whether it is configured to start at system boot:
 
-        class { 'stdmod':
-          status => 'deactivated',
-        }
+        stdmod::status: "running"
 
-* Do not manage service status and boot condition
+* To ensure the stdmod service is not configured to start at system boot, without managing
+  whether it is currently running:
 
-        class { 'stdmod':
-          status => 'unmanaged',
-        }
+        stdmod::status: "deactivated"
 
-* Do not automatically restart services when configuration files change (Default: true).
+* To avoid automatically restarting the service when its configuration file(s) changes:
 
-        class { 'stdmod':
-          autorestart => false,
-        }
+        stdmod::autorestart: "false"
 
-* Enable auditing (on all the arguments)  without making changes on existing stdmod configuration *files*
+* To avoid managing anything about when the service starts or whether it is running:
 
-        class { 'stdmod':
-          audit => 'all',
-        }
+        stdmod::status: "unmanaged"
 
-* Module dry-run: Do not make any change on *all* the resources provided by the module
+* To audit changes to specified (or all) properties of stdmod configuration *files*
 
-        class { 'stdmod':
-          noops => true,
-        }
+        stdmod::audit: ["mtime", "type"]
+
+  or
+
+        stdmod::audit: "all"
+
+* To avoid changing any of the module's managed resources, instead only reporting what needs to be done:
+
+        stdmod::noops: "true"
 
 
-## USAGE - Overrides and Customizations
-* Use custom source for main configuration file 
+## ADVANCED USAGE - Overrides and Customizations
+* To define a custom source for the main configuration file (first one found wins):
 
-        class { 'stdmod':
-          source => [ "puppet:///modules/example42/stdmod/stdmod.conf-${hostname}" ,
-                      "puppet:///modules/example42/stdmod/stdmod.conf" ], 
-        }
+        stdmod::source:
+          - "puppet:///modules/example42/stdmod/stdmod.conf-%{hostname}"
+          - "puppet:///modules/example42/stdmod/stdmod.conf"
 
+* To define a custom source directory for the whole configuration dir:
 
-* Use custom source directory for the whole configuration dir.
+        stdmod::dir_source: "puppet:///modules/example42/stdmod/conf/"
 
-        class { 'stdmod':
-          dir_source       => 'puppet:///modules/example42/stdmod/conf/',
-        }
+* To define a custom source directory for the whole configuration dir *and* purge all the local files that are present in the remote source.
+  Note: This mode can will ensure that the content of a directory is exactly as defined on the server; it will remove otherwise unmanaged files:
 
-* Use custom source directory for the whole configuration dir purging all the local files that are not on the dir_source.
-  Note: This option can be used to be sure that the content of a directory is exactly the same you expect, but it is desctructive and may remove files.
+        stdmod::dir_source: "puppet:///modules/example42/stdmod/conf/"
+        stdmod::dir_purge:  "true"
 
-        class { 'stdmod':
-          dir_source => 'puppet:///modules/example42/stdmod/conf/',
-          dir_purge  => true, # Default: false.
-        }
+* To define a custom source directory for the whole configuration dir, excluding the contents
+ of any subdirectories (which are recursively included by default):
 
-* Use custom source directory for the whole configuration dir and define recursing policy.
+        stdmod::dir_source:    "puppet:///modules/example42/stdmod/conf/"
+        stdmod::dir_recursion: "false"
 
-        class { 'stdmod':
-          dir_source    => 'puppet:///modules/example42/stdmod/conf/',
-          dir_recursion => false, # Default: true.
-        }
+* To define a custom template for the main config file. Note that template and source arguments are mutually exclusive: 
 
-* Use custom template for main config file. Note that template and source arguments are alternative. 
+        stdmod::template: "example42/stdmod/stdmod.conf.erb"
 
-        class { 'stdmod':
-          template => 'example42/stdmod/stdmod.conf.erb',
-        }
+* To provide a hash of custom options for use inside the config file template:
 
-* Use a custom template and provide an hash of custom configurations that you can use inside the template
+        stdmod::options:
+            opt:  'value'
+            opt2: 'value2'
 
-        class { 'stdmod':
-          template => 'example42/stdmod/stdmod.conf.erb',
-          options  => {
-            opt  => 'value',
-            opt2 => 'value2',
-          },
-        }
+* To identify a custom class that provides dependencies required by the module for full functionality.
+  Use this if you want to use alternative modules to manage dependencies:
 
-* Specify the name of a custom class to include that provides the dependencies required by the module for full functionality. Use this if you want to use alternative modules to manage dependencies.
+        stdmod::dependency_class: "example42::dependency_stdmod"
 
-        class { 'stdmod':
-          dependency_class => 'example42::dependency_stdmod',
-        }
+* To identify a custom class with extra resources related to stdmod.  The module will declare it.
 
-* Automatically include a custom class with extra resources related to stdmod.
-  Here is loaded $modulepath/example42/manifests/my_stdmod.pp.
-  Note: Use a subclass name different than stdmod to avoid order loading issues.
-
-        class { 'stdmod':
-          my_class => 'example42::my_stdmod',
-        }
+        stdmod::my_class: 'example42::my_stdmod'
 
 ## TESTING
-[![Build Status](https://travis-ci.org/example42/puppet-stdmod.png?branch=master)](https://travis-ci.org/example42/puppet-stdmod)
